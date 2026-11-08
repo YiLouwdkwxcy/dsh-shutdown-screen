@@ -124,8 +124,8 @@ check('没有 default 导出（避免 unwrapExports 只认 default）', mod.defa
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 6 条路由', ROUTES.size === 6, [...ROUTES.keys()].join(' | '))
-for (const p of ['/dsh-shutdown/config', '/dsh-shutdown/closing.js', '/dsh-shutdown/closing.css', '/dsh-shutdown/media', '/dsh-shutdown/open-media-dir', '/dsh-shutdown/video']) {
+check('注册了 7 条路由', ROUTES.size === 7, [...ROUTES.keys()].join(' | '))
+for (const p of ['/dsh-shutdown/config', '/dsh-shutdown/closing.js', '/dsh-shutdown/closing.css', '/dsh-shutdown/media', '/dsh-shutdown/open-media-dir', '/dsh-shutdown/close-window', '/dsh-shutdown/video']) {
   check('有 exact ' + p, ROUTES.has('exact ' + p))
 }
 check('注册了 1 个 tapIndex', TAPS.length === 1)
@@ -139,9 +139,14 @@ r = await call('exact /dsh-shutdown/closing.js')
 check('closing.js 200 + javascript', r.statusCode === 200 && /javascript/.test(r.headers['content-type']), r.headers['content-type'])
 check('closing.js 非空', r.body.length > 10000, r.body.length + ' bytes')
 check('closing.js 有 __DSH_SHUTDOWN_API__ 导出', r.body.toString('utf8').includes('__DSH_SHUTDOWN_API__'))
-check('closing.js 含静默退出 autoClose', r.body.toString('utf8').includes('function autoClose'))
+check('closing.js 含静默退出 closeTab', r.body.toString('utf8').includes('function closeTab'))
+check('closing.js 会请求关闭窗口（虚拟点击 X）', r.body.toString('utf8').includes("/close-window"))
+check('closing.js 不再用 about:blank 兜底（无黑幕/白幕）', !r.body.toString('utf8').includes('about:blank'))
+check('closing.js 恢复结束语（TTS）', r.body.toString('utf8').includes('speak(outro'))
+check('closing.js 恢复结束画面（close 模式也显示）', r.body.toString('utf8').includes('nodes.end.hidden = false'))
 check('closing.js 不含 confirm()/alert()', !/window\.(confirm|alert)\s*\(/.test(r.body.toString('utf8')))
 check('closing.js 不再有 veil 点击播放层', !r.body.toString('utf8').includes('dsu2-veil'))
+check('closing.js 启动已结束时不再误判为忙', r.body.toString('utf8').includes("if (window.__DSH_STARTUP_FINISHED__ === true) return false"))
 
 console.log('\n[4] 配置读写落盘 + 归一化')
 r = await call('exact /dsh-shutdown/config')
@@ -269,6 +274,16 @@ const openResult = json(r)
 check('POST 打开媒体目录返回 200 + ok', r.statusCode === 200 && openResult.ok === true, r.statusCode + ' ' + JSON.stringify(openResult))
 check('dry-run 返回 mediaDir 路径', typeof openResult.dir === 'string' && openResult.dir.startsWith(SMOKE_HOME), String(openResult.dir))
 delete process.env.DSH_SHUTDOWN_OPEN_DRY
+
+console.log('\\n[7.3] 模拟点击窗口关闭按钮（dry-run）')
+r = await call('exact /dsh-shutdown/close-window', 'GET')
+check('关闭窗口只接受 POST（GET 405）', r.statusCode === 405, String(r.statusCode))
+process.env.DSH_SHUTDOWN_CLOSE_DRY = '1'
+r = await call('exact /dsh-shutdown/close-window', 'POST', JSON.stringify({ title: 'DeepSeek Harness' }))
+const closeResult = json(r)
+check('POST 关闭窗口 dry-run 返回 200 + ok', r.statusCode === 200 && closeResult.ok === true, r.statusCode + ' ' + JSON.stringify(closeResult))
+check('dry-run 回显标题', closeResult.dryRun === true && closeResult.title === 'DeepSeek Harness', JSON.stringify(closeResult))
+delete process.env.DSH_SHUTDOWN_CLOSE_DRY
 
 console.log('\n[8] index.html 注入')
 const after = TAPS[0](SAMPLE_INDEX)

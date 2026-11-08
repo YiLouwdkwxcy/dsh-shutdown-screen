@@ -12,13 +12,13 @@
 
 ```bash
 cd dsh-shutdown-screen
-npm pack                       # 生成 dsh-shutdown-screen-0.2.0.tgz
+npm pack                       # 生成 dsh-shutdown-screen-0.2.1.tgz
 
 # 方式 A：PATH 里的 dsh 可用
-dsh plugin --profile web add ./dsh-shutdown-screen-0.2.0.tgz
+dsh plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
 
 # 方式 B：直接用 DSH 的入口
-node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.0.tgz
+node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
 ```
 
 装完重启 DSH Web 进程，刷新 `http://127.0.0.1:3080`。

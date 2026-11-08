@@ -22,12 +22,18 @@ DSH 启动时会播「开启动画」；这个插件补上另一半：**退出�
 - 触发方式一：侧栏底部、设置按钮上方的 **电源按钮**。
 - 触发方式二：快捷键，默认 `Alt + Shift + Q`（可在设置页改，组合键或单键都行）。
 - 播放内容：`~/.dsh/dsh-shutdown/closing.mp4`（也可换成同目录下任意 mp4 / webm / m4v，中文 / 英文文件名均可）。
-- 播放结束：默认静默尝试关闭标签页，**不弹任何确认框**；浏览器不允许时退化为空白页，按 `Ctrl + W` 关闭即可。
+- 播放结束：默认先显示结束画面并播放结束语，然后**静默关闭浏览器窗口**（`window.close()` 被拒时，
+  由本机模拟「点一下窗口的关闭按钮」），**不弹任何确认框、不出现黑幕 / 白幕**；详见下文。
 - 设置页新增两项：「关闭动画」整页设置 + 侧栏退出按钮；「启动动画」仍是原插件自己的页面。
 
 > 为什么不能用标签页右上角的 × 触发？
 > 浏览器安全模型不允许网页在标签页被关闭时执行动画：`beforeunload` 只能弹原生确认框，
 > `pagehide` / `unload` 阶段已经无法渲染新内容。所以「退出动画」必须由一个应用内入口触发。
+>
+> 关闭是怎么做到的？`window.close()` 对用户手动打开的标签页无效，浏览器会静默拒绝。
+> 所以在它失败后，插件会请求本机 Host 用 Windows 窗口消息 `WM_SYSCOMMAND / SC_CLOSE`
+> 关闭浏览器窗口——**等价于用虚拟鼠标点一下窗口右上角的 ×**。全程不弹确认框，也没有
+> 空白页黑幕 / 白幕。该能力仅 Windows 生效；其它平台会停在结束画面并提示按 `Ctrl+W`。
 
 ---
 
@@ -39,7 +45,7 @@ DSH 启动时会播「开启动画」；这个插件补上另一半：**退出�
 - **播放区间**：可从第 N 秒开始、播到第 M 秒结束；倍速 0.35×–3×。
 - **触发控制**：侧栏按钮可关；快捷键可改，支持组合键（`Alt+Shift+Q`）或单键（`F8` / `Delete` 等）。
 - **播放时机**：每次 / 每个浏览器会话一次 / 每天一次。
-- **结束动作**：播完静默自动退出（默认，不弹确认框）/ 停在结束页 / 重新进入 DSH。
+- **结束动作**：播完 / 跳过都先显示结束画面并播放结束语，再静默自动退出（默认，不弹确认框）/ 停在结束页 / 重新进入 DSH。
 - **音量增益**：视频音量之外还能在 100%–300% 之间继续放大（WebAudio 增益）。
 - **无蒙板**：不显示「点击播放」遮罩，也没有暗角 / 扫描线，播的就是视频原画面。
 - **音画与文案**：视频音量、结束语 TTS（中文 / 英文 / 中英各一遍，可选系统音色、语速、音高、音量、
@@ -57,10 +63,10 @@ DSH 启动时会播「开启动画」；这个插件补上另一半：**退出�
 ```bash
 # 1) 打包
 npm pack
-# 得到 dsh-shutdown-screen-0.2.0.tgz
+# 得到 dsh-shutdown-screen-0.2.1.tgz
 
 # 2) 安装到 web profile
-node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.0.tgz
+node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
 ```
 
 （`dsh` 命令本身是同一个入口；如果 PATH 里的 `dsh` 能用，直接 `dsh plugin --profile web add ...` 即可。）
@@ -75,7 +81,7 @@ dsh plugin --profile web add /path/to/dsh-shutdown-screen
 
 - 设置页左侧多出 **关闭动画**；
 - 侧栏底部、设置按钮上方多出 **电源按钮**；
-- 全局快捷键 `Alt + Shift + Q` 可用。
+- 全局快捷键 `Alt + Shift + Q` 可用（页面刚打开也能一次触发，不用刷新；启动动画期间按下会排队）。
 
 ## 放视频
 
@@ -94,7 +100,9 @@ macOS / Linux: ~/.dsh/dsh-shutdown/closing.mp4
 
 1. 点侧栏底部电源按钮，或按 `Alt + Shift + Q`（可改单键）。
 2. 全屏播放视频；可点右上角 `SKIP` 或按 `Esc` 跳过（若允许跳过）。
-3. 播完默认静默自动退出：尝试关闭标签页，不弹任何确认框；浏览器拒绝时退化为空白页，用 `Ctrl + W` 关闭。
+3. 播完（或跳过）后先显示结束画面、播放结束语，再静默关闭浏览器窗口：不弹确认框，
+   也没有黑幕 / 白幕。关闭动作 = `window.close()` + 本机模拟点击窗口 ×（仅 Windows）。
+   若两种方式都被系统拒绝，结束画面会保留并提示按 `Ctrl + W`。
 4. 若把「播放结束后」改成「停留在结束页 / 重新进入 DSH」，则按对应行为执行。
 5. 想先看效果：设置页「立即预览」——预览不会真的关页。
 
@@ -109,7 +117,7 @@ macOS / Linux: ~/.dsh/dsh-shutdown/closing.mp4
 | --- | --- |
 | 播放 | 启用、播放时机、倍速 |
 | 视频（新增） | 视频文件（中英文文件名）、画面适配（contain/cover）、开始秒、结束秒、打开媒体目录、刷新列表、立即预览 |
-| 触发与结束（新增） | 侧栏退出按钮、退出快捷键（组合键或单键）、播放结束后动作（默认静默退出） |
+| 触发与结束（新增） | 侧栏退出按钮、退出快捷键（组合键或单键）、播放结束后动作（默认：结束画面 + 结束语 → 静默关闭窗口） |
 | 交互 | 允许跳过 |
 | 声音 / 语音 / 音效 | 视频声音、视频音量、音量增益（100%–300%）、TTS 开关/语言/音色/语速/音高/音量/提示音、音效、TTS 延后 |
 | 视觉 | 主题、角标与进度条、强调色、故障色 A/B |
@@ -124,12 +132,13 @@ macOS / Linux: ~/.dsh/dsh-shutdown/closing.mp4
 
 ```text
 DSH Web 进程（Host 半侧，lib/index.js）
-  ├─ register 6 条路由：
+  ├─ register 7 条路由：
   │    /dsh-shutdown/config          GET 读配置 / POST 写配置（归一化、reset）
   │    /dsh-shutdown/closing.js      关闭动画运行时（IIFE，按 mtime 缓存）
   │    /dsh-shutdown/closing.css     样式（按 mtime 缓存）
   │    /dsh-shutdown/media           媒体目录列表
   │    /dsh-shutdown/open-media-dir  打开系统文件管理器到媒体目录（仅 POST）
+  │    /dsh-shutdown/close-window    模拟点击浏览器窗口 ×（仅 POST，Windows）
   │    /dsh-shutdown/video           视频流，支持 Range 206 / HEAD
   ├─ tapIndex：往 index.html 注入 <link> + critical CSS + 内联配置 + <script defer closing.js>
   └─ 所有路由先过 connection.requestRejection（DNS 重绑定防护，和原插件一致）
@@ -142,7 +151,8 @@ DSH Web 进程（Host 半侧，lib/index.js）
 关闭动画运行时（lib/closing.js）
   ├─ 触发：按钮 / 快捷键（组合键或单键）/ window 事件 / window.__DSH_SHUTDOWN_API__
   ├─ 播放：<video>（静音兜底自动播放 + WebAudio 音量增益）+ 自定义 chrome（品牌、ID、进度条、SKIP）
-  ├─ 结束：静默 autoClose（window.close → 脚本重开再关 → about:blank），preview/card 模式才显示结束卡片
+  ├─ 结束：结束画面 + TTS 结束语 → 静默 closeTab（window.close → 本机 close-window 模拟点 ×），
+  │        全程无确认框、无空白页；preview / card / reload 模式停在结束画面
   └─ 清理：移除节点、解锁滚动、恢复焦点、复位 __DSH_SHUTDOWN_RUNNING__
 ```
 
@@ -161,7 +171,7 @@ DSH Web 进程（Host 半侧，lib/index.js）
 ## 测试
 
 ```bash
-node test/smoke-host.mjs   # 93 项断言：导出形状 / 路由 / 信任栅栏 / 配置归一化 / Range 206 / 中文文件名 / 打开目录 / 注入 / XSS
+node test/smoke-host.mjs   # 102 项断言：导出形状 / 路由 / 信任栅栏 / 配置归一化 / Range 206 / 中文文件名 / 打开目录 / 关闭窗口 dry-run / 注入 / XSS
 node --check lib/index.js && node --check lib/closing.js && node --check lib/client.js
 ```
 
@@ -172,7 +182,7 @@ node --check lib/index.js && node --check lib/closing.js && node --check lib/cli
 - DSH Web profile（`dsh.client.platform: "web"`），DSH 0.2.x；依赖公开的 `webServer`、
   `connection.requestRejection`、`ctx.slots` 接口，不碰 DSH 内部私有实现。
 - 与 `dsh-startup-screen` 1.2.0 并存验证；两个插件互不改文件。
-- 0.2.0 与 0.1.0 配置完全兼容，升级后刷新页面即可；见 [CHANGELOG.md](./CHANGELOG.md)。
+- 0.2.1 与 0.2.0 / 0.1.0 配置完全兼容（无新增字段），升级后重启 / 刷新页面即可；见 [CHANGELOG.md](./CHANGELOG.md)。
 - 桌面端：Host 半侧检测不到 `webServer` 时只告警不报错，设置页仍可用；关闭动画需 Web 端。
 
 ---

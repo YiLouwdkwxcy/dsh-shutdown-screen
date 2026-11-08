@@ -1,0 +1,57 @@
+{
+  "name": "dsh-shutdown-screen",
+  "version": "0.1.0",
+  "private": false,
+  "description": "DeepSeek Harness 关闭动画：退出时全屏播放视频。dsh-startup-screen 的独立伴生插件。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "shutdown",
+    "closing-screen",
+    "exit-animation"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "test",
+    "cordis.patch.yml",
+    "README.md",
+    "INSTALL.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/smoke-host.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "author": "YiLouwdkwxcy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YiLouwdkwxcy/dsh-shutdown-screen.git"
+  },
+  "homepage": "https://github.com/YiLouwdkwxcy/dsh-shutdown-screen#readme",
+  "bugs": {
+    "url": "https://github.com/YiLouwdkwxcy/dsh-shutdown-screen/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ],
+      "platform": "web"
+    }
+  }
+}

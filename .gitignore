@@ -1,0 +1,20 @@
+# 媒体文件不入库：视频由使用者自备，放在 ~/.dsh/dsh-shutdown/closing.mp4
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.jpg
+*.jpeg
+*.png
+!docs/**/*.png
+!docs/**/*.jpg
+
+# 打包产物
+*.tgz
+*.zip
+
+# 本地开发
+node_modules/
+.tmp/
+.DS_Store
+Thumbs.db

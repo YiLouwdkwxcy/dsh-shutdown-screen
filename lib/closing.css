@@ -1,0 +1,368 @@
+/* ============================================================================
+ * dsh-shutdown-screen —— 关闭动画样式
+ * 命名空间 dsu2- 避免与 dsh-startup-screen（dsu-）冲突；两插件可同时安装。
+ * z-index 2147483600 高于启动动画的 2147483000。
+ * ========================================================================== */
+#dsh-shutdown-root,
+#dsh-shutdown-root * { box-sizing: border-box; }
+
+#dsh-shutdown-root[hidden] { display: none !important; }
+
+#dsh-shutdown-root.dsu2-root {
+  --accent: #ff7500;
+  --glitch-a: #ff3b30;
+  --glitch-b: #2971b8;
+  --bg: #050506;
+  --fg: #f2f0eb;
+  --dim: rgba(242, 240, 235, 0.55);
+  --line: rgba(242, 240, 235, 0.16);
+  position: fixed;
+  inset: 0;
+  z-index: 2147483600;
+  color: var(--fg);
+  background: #000;
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  overflow: hidden;
+  user-select: none;
+}
+#dsh-shutdown-root.dsu2-root.dsu2-visible { opacity: 1; }
+#dsh-shutdown-root.dsu2-root[data-theme="light"] {
+  --bg: #f4f1ea;
+  --fg: #14100c;
+  --dim: rgba(20, 16, 12, 0.55);
+  --line: rgba(20, 16, 12, 0.18);
+}
+
+.dsu2-stage { position: absolute; inset: 0; overflow: hidden; background: #000; }
+
+/* ---------- 视频 ---------- */
+.dsu2-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  transition: opacity 0.45s ease;
+}
+#dsh-shutdown-root[data-fit="cover"] .dsu2-video { object-fit: cover; }
+.dsu2-video.dsu2-fading { opacity: 0; }
+.dsu2-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 18%, transparent 78%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* ---------- 浮层（chrome） ---------- */
+.dsu2-chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: #f4f2ee;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+.dsu2-nochrome .dsu2-chrome,
+.dsu2-chrome.dsu2-hidden { opacity: 0; }
+
+.dsu2-top {
+  position: absolute;
+  top: clamp(18px, 3.4vh, 40px);
+  left: clamp(20px, 3vw, 48px);
+  right: clamp(20px, 3vw, 48px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.dsu2-brand { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
+.dsu2-brand1 {
+  font-size: clamp(18px, 2.2vw, 30px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.dsu2-brand2 {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-size: clamp(8px, 0.72vw, 11px);
+  letter-spacing: 0.34em;
+  color: rgba(244, 242, 238, 0.72);
+  margin-top: 4px;
+}
+.dsu2-brand3 {
+  margin-top: 6px;
+  font-size: clamp(14px, 1.5vw, 21px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+.dsu2-brand3 b { color: var(--accent); font-weight: 700; }
+
+.dsu2-id {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(9px, 0.8vw, 12px);
+  letter-spacing: 0.22em;
+  color: rgba(244, 242, 238, 0.82);
+}
+.dsu2-id b { color: var(--accent); letter-spacing: 0.1em; }
+
+.dsu2-skip {
+  position: absolute;
+  top: clamp(18px, 3.4vh, 40px);
+  right: clamp(20px, 3vw, 48px);
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(244, 242, 238, 0.42);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
+  color: #f4f2ee;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.dsu2-root.dsu2-skipReady .dsu2-skip { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease; }
+.dsu2-skip:hover { border-color: var(--accent); color: var(--accent); background: rgba(0, 0, 0, 0.5); }
+
+.dsu2-status b { color: var(--accent); font-weight: 600; }
+
+.dsu2-bottom {
+  position: absolute;
+  right: clamp(20px, 3vw, 48px);
+  left: clamp(20px, 3vw, 48px);
+  bottom: clamp(16px, 3vh, 34px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(8px, 0.7vw, 10px);
+  letter-spacing: 0.28em;
+  color: rgba(244, 242, 238, 0.58);
+}
+.dsu2-bottomCol { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.dsu2-right { text-align: right; align-items: flex-end; }
+.dsu2-status {
+  font-size: clamp(9px, 0.78vw, 11px);
+  letter-spacing: 0.2em;
+  color: rgba(244, 242, 238, 0.75);
+}
+.dsu2-copy { color: rgba(244, 242, 238, 0.72); }
+
+.dsu2-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(244, 242, 238, 0.14);
+}
+.dsu2-bar i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.14s linear;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ---------- 结束卡片 ---------- */
+.dsu2-end {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2.6vh, 26px);
+  background:
+    radial-gradient(90% 70% at 50% 42%, rgba(255, 117, 0, 0.08) 0%, transparent 60%),
+    var(--bg);
+  color: var(--fg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s ease;
+}
+.dsu2-end.dsu2-show { opacity: 1; pointer-events: auto; }
+.dsu2-end::before,
+.dsu2-end::after {
+  content: "";
+  position: absolute;
+  left: clamp(20px, 3vw, 48px);
+  right: clamp(20px, 3vw, 48px);
+  height: 1px;
+  background: var(--line);
+}
+.dsu2-end::before { top: clamp(18px, 3.4vh, 40px); }
+.dsu2-end::after { bottom: clamp(18px, 3.4vh, 40px); }
+
+.dsu2-endInner { display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 1.8vh, 18px); padding: 0 24px; text-align: center; }
+.dsu2-orgZh {
+  font-size: clamp(34px, 6.2vw, 86px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.05;
+  animation: dsu2-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dsu2-orgEn {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(11px, 1.15vw, 16px);
+  letter-spacing: 0.62em;
+  text-indent: 0.62em;
+  color: var(--dim);
+  animation: dsu2-rise 0.7s 0.06s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dsu2-box {
+  margin-top: 4px;
+  padding: clamp(12px, 1.8vh, 20px) clamp(24px, 4vw, 56px);
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(11px, 1vw, 14px);
+  letter-spacing: 0.3em;
+  color: var(--fg);
+  animation: dsu2-rise 0.7s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+[data-theme="light"] .dsu2-box { background: rgba(20, 16, 12, 0.06); }
+.dsu2-orgSub {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(9px, 0.8vw, 11px);
+  letter-spacing: 0.36em;
+  color: var(--dim);
+  animation: dsu2-rise 0.7s 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dsu2-endFoot {
+  position: absolute;
+  left: clamp(20px, 3vw, 48px);
+  right: clamp(20px, 3vw, 48px);
+  bottom: calc(clamp(18px, 3.4vh, 40px) + 16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(8px, 0.7vw, 10px);
+  letter-spacing: 0.28em;
+  color: var(--dim);
+}
+.dsu2-endFoot b { color: var(--accent); }
+
+/* ---------- 关页提示 ---------- */
+.dsu2-hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(56px, 9vh, 96px);
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 48px));
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  color: var(--fg);
+  text-align: center;
+  animation: dsu2-rise 0.4s ease both;
+}
+[data-theme="light"] .dsu2-hint { background: rgba(255, 255, 255, 0.72); }
+.dsu2-hintText { margin: 0 0 6px; font-size: clamp(11px, 0.95vw, 13px); line-height: 1.65; color: var(--fg); }
+.dsu2-hint .dsu2-hintKey { color: var(--dim); }
+.dsu2-hint kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.dsu2-hintBtns { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+.dsu2-hintBtns button {
+  cursor: pointer;
+  padding: 7px 16px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.dsu2-hintBtns button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 点击播放遮罩 / 预览标记 ---------- */
+.dsu2-veil {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  z-index: 3;
+}
+.dsu2-veilBtn {
+  padding: 14px 26px;
+  border: 1px solid rgba(244, 242, 238, 0.5);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: #f4f2ee;
+}
+.dsu2-previewTag {
+  position: absolute;
+  top: calc(clamp(18px, 3.4vh, 40px) + 92px);
+  left: clamp(20px, 3vw, 48px);
+  padding: 4px 10px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  animation: dsu2-rise 0.4s ease both;
+}
+
+/* ---------- 故障闪屏 ---------- */
+.dsu2-glitch { animation: dsu2-glitch 0.42s steps(2, end) 2; }
+@keyframes dsu2-glitch {
+  0%   { filter: none; transform: none; }
+  12%  { filter: drop-shadow(3px 0 0 var(--glitch-a)) drop-shadow(-3px 0 0 var(--glitch-b)); transform: translateX(-2px); }
+  28%  { filter: drop-shadow(-4px 0 0 var(--glitch-a)) drop-shadow(4px 0 0 var(--glitch-b)); transform: translateX(2px) skewX(0.6deg); }
+  44%  { filter: drop-shadow(2px 0 0 var(--glitch-b)) drop-shadow(-2px 0 0 var(--glitch-a)); transform: translateX(-1px); }
+  62%  { filter: none; transform: none; }
+  76%  { filter: drop-shadow(4px 0 0 var(--glitch-a)); transform: translateX(3px); }
+  100% { filter: none; transform: none; }
+}
+@keyframes dsu2-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 粗颗粒扫描线（很轻，避免抢视频画面） */
+.dsu2-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #dsh-shutdown-root.dsu2-root,
+  .dsu2-chrome,
+  .dsu2-video,
+  .dsu2-end { transition: none !important; }
+  .dsu2-glitch { animation: none !important; }
+  .dsu2-orgZh, .dsu2-orgEn, .dsu2-box, .dsu2-orgSub { animation: none !important; }
+}

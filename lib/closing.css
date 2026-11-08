@@ -50,14 +50,6 @@
 }
 #dsh-shutdown-root[data-fit="cover"] .dsu2-video { object-fit: cover; }
 .dsu2-video.dsu2-fading { opacity: 0; }
-.dsu2-vignette {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 18%, transparent 78%, rgba(0, 0, 0, 0.55) 100%);
-}
 
 /* ---------- 浮层（chrome） ---------- */
 .dsu2-chrome {
@@ -300,25 +292,7 @@
 }
 .dsu2-hintBtns button:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ---------- 点击播放遮罩 / 预览标记 ---------- */
-.dsu2-veil {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
-  cursor: pointer;
-  z-index: 3;
-}
-.dsu2-veilBtn {
-  padding: 14px 26px;
-  border: 1px solid rgba(244, 242, 238, 0.5);
-  font-family: "Cascadia Mono", Consolas, monospace;
-  font-size: 12px;
-  letter-spacing: 0.3em;
-  color: #f4f2ee;
-}
+/* ---------- 预览标记 ---------- */
 .dsu2-previewTag {
   position: absolute;
   top: calc(clamp(18px, 3.4vh, 40px) + 92px);
@@ -346,16 +320,6 @@
 @keyframes dsu2-rise {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-/* 粗颗粒扫描线（很轻，避免抢视频画面） */
-.dsu2-scan {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.12;
-  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 3px);
-  mix-blend-mode: overlay;
 }
 
 @media (prefers-reduced-motion: reduce) {

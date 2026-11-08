@@ -1,4 +1,4 @@
-﻿/* ============================================================================
+/* ============================================================================
  * Host 半侧冒烟测试 —— 不装进 DSH，直接用假 ctx 把 apply() 跑一遍。
  * 覆盖：路由注册 / 信任栅栏 / 配置读写与归一化 / 视频 Range 206 /
  *       媒体列表 / index.html 注入 / XSS 边界。
@@ -124,8 +124,8 @@ check('没有 default 导出（避免 unwrapExports 只认 default）', mod.defa
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 5 条路由', ROUTES.size === 5, [...ROUTES.keys()].join(' | '))
-for (const p of ['/dsh-shutdown/config', '/dsh-shutdown/closing.js', '/dsh-shutdown/closing.css', '/dsh-shutdown/media', '/dsh-shutdown/video']) {
+check('注册了 6 条路由', ROUTES.size === 6, [...ROUTES.keys()].join(' | '))
+for (const p of ['/dsh-shutdown/config', '/dsh-shutdown/closing.js', '/dsh-shutdown/closing.css', '/dsh-shutdown/media', '/dsh-shutdown/open-media-dir', '/dsh-shutdown/video']) {
   check('有 exact ' + p, ROUTES.has('exact ' + p))
 }
 check('注册了 1 个 tapIndex', TAPS.length === 1)
@@ -139,6 +139,9 @@ r = await call('exact /dsh-shutdown/closing.js')
 check('closing.js 200 + javascript', r.statusCode === 200 && /javascript/.test(r.headers['content-type']), r.headers['content-type'])
 check('closing.js 非空', r.body.length > 10000, r.body.length + ' bytes')
 check('closing.js 有 __DSH_SHUTDOWN_API__ 导出', r.body.toString('utf8').includes('__DSH_SHUTDOWN_API__'))
+check('closing.js 含静默退出 autoClose', r.body.toString('utf8').includes('function autoClose'))
+check('closing.js 不含 confirm()/alert()', !/window\.(confirm|alert)\s*\(/.test(r.body.toString('utf8')))
+check('closing.js 不再有 veil 点击播放层', !r.body.toString('utf8').includes('dsu2-veil'))
 
 console.log('\n[4] 配置读写落盘 + 归一化')
 r = await call('exact /dsh-shutdown/config')
@@ -156,7 +159,7 @@ check('默认配置已落盘', fs.existsSync(path.join(SMOKE_HOME, 'dsh-shutdown
 
 r = await call('exact /dsh-shutdown/config', 'POST', JSON.stringify({
   patch: {
-    identity: '琉璃', speed: 99, soundVolume: 9, enabled: 'true',
+    identity: '琉璃', speed: 99, soundVolume: 9, enabled: 'true', volumeBoost: 9,
     shortcut: 'Q', endAction: 'nope', videoFile: '../../evil.mp4',
     playFrom: 5, playTo: 3, theme: 'neon',
   },
@@ -166,8 +169,9 @@ check('POST config ok', cfg.ok === true)
 check('中文身份写入成功', cfg.config.identity === '琉璃', cfg.config.identity)
 check('speed 夹到 3', cfg.config.speed === 3, String(cfg.config.speed))
 check('soundVolume 夹到 1', cfg.config.soundVolume === 1, String(cfg.config.soundVolume))
+check('volumeBoost 夹到 3', cfg.config.volumeBoost === 3, String(cfg.config.volumeBoost))
 check('字符串 "true" 转成 boolean true', cfg.config.enabled === true)
-check('裸按键快捷键回落到默认', cfg.config.shortcut === 'Alt+Shift+Q', cfg.config.shortcut)
+check('单键快捷键保留（Q）', cfg.config.shortcut === 'Q', cfg.config.shortcut)
 check('非法 endAction 回落到 close', cfg.config.endAction === 'close', cfg.config.endAction)
 check('目录穿越的 videoFile 回落到 closing.mp4', cfg.config.videoFile === 'closing.mp4', cfg.config.videoFile)
 check('playTo <= playFrom 时归零', cfg.config.playTo === 0, String(cfg.config.playTo))
@@ -178,6 +182,16 @@ cfg = json(r)
 check('合法快捷键保留', cfg.config.shortcut === 'Ctrl+Shift+E', cfg.config.shortcut)
 check('speed 夹到 0.35', cfg.config.speed === 0.35, String(cfg.config.speed))
 check('playFrom 取整', cfg.config.playFrom === 1, String(cfg.config.playFrom))
+
+r = await call('exact /dsh-shutdown/config', 'POST', JSON.stringify({ patch: { shortcut: 'f8', volumeBoost: 0.5 } }))
+cfg = json(r)
+check('单键快捷键 f8 规范化成 F8', cfg.config.shortcut === 'F8', cfg.config.shortcut)
+check('volumeBoost 下限夹到 1', cfg.config.volumeBoost === 1, String(cfg.config.volumeBoost))
+
+r = await call('exact /dsh-shutdown/config', 'POST', JSON.stringify({ patch: { shortcut: 'Ctrl+', volumeBoost: 1.75 } }))
+cfg = json(r)
+check('残缺快捷键回落到默认', cfg.config.shortcut === 'Alt+Shift+Q', cfg.config.shortcut)
+check('合法 volumeBoost 保留（1.75）', cfg.config.volumeBoost === 1.75, String(cfg.config.volumeBoost))
 
 r = await call('exact /dsh-shutdown/config', 'POST', JSON.stringify({ action: 'reset' }))
 check('reset 恢复默认身份', json(r).config.identity === 'JOYCE MOORE')
@@ -231,6 +245,31 @@ fs.writeFileSync(path.join(MEDIA, 'not-a-video.txt'), 'x')
 media = json(await call('exact /dsh-shutdown/media'))
 check('非视频扩展名被过滤', media.files.every((f) => f.name.endsWith('.mp4')), JSON.stringify(media.files.map((f) => f.name)))
 
+console.log('\n[7.1] 中文 / 英文文件名识别')
+const CN_NAME = '中文 测试视频-01.mp4'
+const CN_BYTES = Buffer.from('chinese-name-video-bytes')
+fs.writeFileSync(path.join(MEDIA, CN_NAME), CN_BYTES)
+media = json(await call('exact /dsh-shutdown/media'))
+check('中文文件名出现在媒体列表', media.files.some((f) => f.name === CN_NAME), JSON.stringify(media.files.map((f) => f.name)))
+r = await call('exact /dsh-shutdown/config', 'POST', JSON.stringify({ patch: { videoFile: CN_NAME } }))
+cfg = json(r)
+check('中文文件名可保存为当前视频', cfg.config.videoFile === CN_NAME, cfg.config.videoFile)
+check('中文视频 exists = true', cfg.video && cfg.video.exists === true && cfg.video.size === CN_BYTES.length, JSON.stringify(cfg.video))
+r = await call('exact /dsh-shutdown/video', 'HEAD', undefined, '/dsh-shutdown/video')
+check('中文视频可被 HTTP 路由读出', r.statusCode === 200 && String(r.headers['content-length']) === String(CN_BYTES.length), r.statusCode + ' len=' + r.headers['content-length'])
+r = await call('exact /dsh-shutdown/config', 'POST', JSON.stringify({ patch: { videoFile: 'closing.mp4' } }))
+check('恢复英文文件名', json(r).config.videoFile === 'closing.mp4')
+
+console.log('\n[7.2] 打开媒体目录（dry-run）')
+r = await call('exact /dsh-shutdown/open-media-dir', 'GET')
+check('打开媒体目录只接受 POST（GET 405）', r.statusCode === 405, String(r.statusCode))
+process.env.DSH_SHUTDOWN_OPEN_DRY = '1'
+r = await call('exact /dsh-shutdown/open-media-dir', 'POST', '{}')
+const openResult = json(r)
+check('POST 打开媒体目录返回 200 + ok', r.statusCode === 200 && openResult.ok === true, r.statusCode + ' ' + JSON.stringify(openResult))
+check('dry-run 返回 mediaDir 路径', typeof openResult.dir === 'string' && openResult.dir.startsWith(SMOKE_HOME), String(openResult.dir))
+delete process.env.DSH_SHUTDOWN_OPEN_DRY
+
 console.log('\n[8] index.html 注入')
 const after = TAPS[0](SAMPLE_INDEX)
 check('注入 closing.css link', after.includes('<link rel="stylesheet" href="/dsh-shutdown/closing.css">'))
@@ -239,13 +278,13 @@ check('注入 BOOT 标记', after.includes('window.__DSH_SHUTDOWN_BOOT__="index"
 check('注入版本号 = package.json', after.includes('window.__DSH_SHUTDOWN_VERSION__=' + JSON.stringify(PKG.version)), PKG.version)
 check('注入 ROUTE', after.includes('window.__DSH_SHUTDOWN_ROUTE__="/dsh-shutdown"'))
 check('注入 defer 运行时脚本', after.includes('<script defer src="/dsh-shutdown/closing.js"></script>'))
-check('注入的配置是合法 JSON 且含 41 个键', (() => {
+check('注入的配置是合法 JSON 且含 42 个键', (() => {
   const a = after.indexOf('window.__DSH_SHUTDOWN__=')
   const b = after.indexOf(';</script>', a)
   if (a < 0 || b < 0) return false
   try {
     const payload = JSON.parse(after.slice(a + 'window.__DSH_SHUTDOWN__='.length, b))
-    return Object.keys(payload).length === 41
+    return Object.keys(payload).length === 42
   } catch { return false }
 })())
 check('配置落在 </head> 之前', after.indexOf('dsh-shutdown-critical') < after.indexOf('</head>'))

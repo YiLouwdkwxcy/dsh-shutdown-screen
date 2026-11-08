@@ -20,9 +20,9 @@
 DSH 启动时会播「开启动画」；这个插件补上另一半：**退出时播放一段视频**。
 
 - 触发方式一：侧栏底部、设置按钮上方的 **电源按钮**。
-- 触发方式二：快捷键，默认 `Alt + Shift + Q`（可在设置页改）。
-- 播放内容：`~/.dsh/dsh-shutdown/closing.mp4`（也可换成同目录下任意 mp4 / webm / m4v）。
-- 播放结束：尝试 `window.close()` 关闭标签页；浏览器不允许时停在结束卡片，提示用 `Ctrl + W`。
+- 触发方式二：快捷键，默认 `Alt + Shift + Q`（可在设置页改，组合键或单键都行）。
+- 播放内容：`~/.dsh/dsh-shutdown/closing.mp4`（也可换成同目录下任意 mp4 / webm / m4v，中文 / 英文文件名均可）。
+- 播放结束：默认静默尝试关闭标签页，**不弹任何确认框**；浏览器不允许时退化为空白页，按 `Ctrl + W` 关闭即可。
 - 设置页新增两项：「关闭动画」整页设置 + 侧栏退出按钮；「启动动画」仍是原插件自己的页面。
 
 > 为什么不能用标签页右上角的 × 触发？
@@ -34,11 +34,14 @@ DSH 启动时会播「开启动画」；这个插件补上另一半：**退出�
 ## 功能
 
 - **视频即动画**：直接播放原始视频，不做重编码；服务端实现了 HTTP Range（206），拖进度条、分段加载都正常。
-- **可换视频**：媒体目录里的任意 `mp4 / webm / m4v` 都能在设置页下拉选择，支持「刷新列表」。
+- **可换视频**：媒体目录里的任意 `mp4 / webm / m4v` 都能在设置页下拉选择；支持中文 / 英文文件名，
+  设置页有「打开媒体目录」按钮，把视频拖进去再「刷新列表」即可。
 - **播放区间**：可从第 N 秒开始、播到第 M 秒结束；倍速 0.35×–3×。
-- **触发控制**：侧栏按钮可关；快捷键可改（必须带修饰键，避免误触）；退出前可二次确认。
+- **触发控制**：侧栏按钮可关；快捷键可改，支持组合键（`Alt+Shift+Q`）或单键（`F8` / `Delete` 等）。
 - **播放时机**：每次 / 每个浏览器会话一次 / 每天一次。
-- **结束动作**：尝试关闭标签页 / 停在结束页 / 重新进入 DSH。
+- **结束动作**：播完静默自动退出（默认，不弹确认框）/ 停在结束页 / 重新进入 DSH。
+- **音量增益**：视频音量之外还能在 100%–300% 之间继续放大（WebAudio 增益）。
+- **无蒙板**：不显示「点击播放」遮罩，也没有暗角 / 扫描线，播的就是视频原画面。
 - **音画与文案**：视频音量、结束语 TTS（中文 / 英文 / 中英各一遍，可选系统音色、语速、音高、音量、
   提示音、延后毫秒）、合成器关机音效、主题（深/浅）、强调色与故障色、身份资料、品牌与文案、页脚。
 - **不干扰开启动画**：启动动画正在播放时不会触发；关闭动画的层级（`z-index: 2147483600`）高于开启动画，
@@ -54,10 +57,10 @@ DSH 启动时会播「开启动画」；这个插件补上另一半：**退出�
 ```bash
 # 1) 打包
 npm pack
-# 得到 dsh-shutdown-screen-0.1.0.tgz
+# 得到 dsh-shutdown-screen-0.2.0.tgz
 
 # 2) 安装到 web profile
-node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.1.0.tgz
+node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.0.tgz
 ```
 
 （`dsh` 命令本身是同一个入口；如果 PATH 里的 `dsh` 能用，直接 `dsh plugin --profile web add ...` 即可。）
@@ -81,17 +84,18 @@ Windows: C:\Users\<你>\.dsh\dsh-shutdown\closing.mp4
 macOS / Linux: ~/.dsh/dsh-shutdown/closing.mp4
 ```
 
-- 设置页「视频」组里有「复制媒体目录」和「刷新列表」按钮；也可以把别的视频放进去再选。
+- 设置页「视频」组里有「打开媒体目录」「复制路径」「刷新列表」按钮；点「打开媒体目录」会直接弹出
+  系统文件管理器，把视频拖进去，再点「刷新列表」选中即可。中文、英文文件名都支持。
 - 视频文件不会进 Git（仓库 `.gitignore` 忽略媒体文件），也不会上传到任何服务器——只由本机的
   DSH Web 服务读取。
 - 仓库不附带示例视频；请使用你有权使用的内容。
 
 ## 使用
 
-1. 点侧栏底部电源按钮，或按 `Alt + Shift + Q`。
-2. 若开了「退出前二次确认」，先确认。
-3. 全屏播放视频；可点右上角 `SKIP` 或按 `Esc` 跳过（若允许跳过）。
-4. 播完出现结束卡片；按设置尝试关闭标签页 / 停留 / 重新进入。
+1. 点侧栏底部电源按钮，或按 `Alt + Shift + Q`（可改单键）。
+2. 全屏播放视频；可点右上角 `SKIP` 或按 `Esc` 跳过（若允许跳过）。
+3. 播完默认静默自动退出：尝试关闭标签页，不弹任何确认框；浏览器拒绝时退化为空白页，用 `Ctrl + W` 关闭。
+4. 若把「播放结束后」改成「停留在结束页 / 重新进入 DSH」，则按对应行为执行。
 5. 想先看效果：设置页「立即预览」——预览不会真的关页。
 
 ---
@@ -104,10 +108,10 @@ macOS / Linux: ~/.dsh/dsh-shutdown/closing.mp4
 | 组 | 内容 |
 | --- | --- |
 | 播放 | 启用、播放时机、倍速 |
-| 视频（新增） | 视频文件、画面适配（contain/cover）、开始秒、结束秒、媒体目录、立即预览 |
-| 触发与结束（新增） | 侧栏退出按钮、退出快捷键、播放结束后动作 |
-| 交互 | 退出前二次确认、允许跳过 |
-| 声音 / 语音 / 音效 | 视频声音、音量、TTS 开关/语言/音色/语速/音高/音量/提示音、音效、TTS 延后 |
+| 视频（新增） | 视频文件（中英文文件名）、画面适配（contain/cover）、开始秒、结束秒、打开媒体目录、刷新列表、立即预览 |
+| 触发与结束（新增） | 侧栏退出按钮、退出快捷键（组合键或单键）、播放结束后动作（默认静默退出） |
+| 交互 | 允许跳过 |
+| 声音 / 语音 / 音效 | 视频声音、视频音量、音量增益（100%–300%）、TTS 开关/语言/音色/语速/音高/音量/提示音、音效、TTS 延后 |
 | 视觉 | 主题、角标与进度条、强调色、故障色 A/B |
 | 身份资料 | 身份名称、身份编号、权限等级 |
 | 品牌与文案 | 品牌 3 行、机构名中英、副标题、结束框文案、页脚 |
@@ -120,12 +124,13 @@ macOS / Linux: ~/.dsh/dsh-shutdown/closing.mp4
 
 ```text
 DSH Web 进程（Host 半侧，lib/index.js）
-  ├─ register 5 条路由：
-  │    /dsh-shutdown/config      GET 读配置 / POST 写配置（归一化、reset）
-  │    /dsh-shutdown/closing.js  关闭动画运行时（IIFE，按 mtime 缓存）
-  │    /dsh-shutdown/closing.css 样式（按 mtime 缓存）
-  │    /dsh-shutdown/media       媒体目录列表
-  │    /dsh-shutdown/video       视频流，支持 Range 206 / HEAD
+  ├─ register 6 条路由：
+  │    /dsh-shutdown/config          GET 读配置 / POST 写配置（归一化、reset）
+  │    /dsh-shutdown/closing.js      关闭动画运行时（IIFE，按 mtime 缓存）
+  │    /dsh-shutdown/closing.css     样式（按 mtime 缓存）
+  │    /dsh-shutdown/media           媒体目录列表
+  │    /dsh-shutdown/open-media-dir  打开系统文件管理器到媒体目录（仅 POST）
+  │    /dsh-shutdown/video           视频流，支持 Range 206 / HEAD
   ├─ tapIndex：往 index.html 注入 <link> + critical CSS + 内联配置 + <script defer closing.js>
   └─ 所有路由先过 connection.requestRejection（DNS 重绑定防护，和原插件一致）
 
@@ -135,9 +140,9 @@ DSH Web 进程（Host 半侧，lib/index.js）
   └─ sidebar.footer.action → 侧栏底部电源按钮（order 55）
 
 关闭动画运行时（lib/closing.js）
-  ├─ 触发：按钮 / 快捷键 / window 事件 / window.__DSH_SHUTDOWN_API__
-  ├─ 播放：<video> + 自定义 chrome（品牌、ID、进度条、SKIP、结束卡片）
-  ├─ 结束：TTS 告别语 → 按 endAction 关页 / 停留 / 重载
+  ├─ 触发：按钮 / 快捷键（组合键或单键）/ window 事件 / window.__DSH_SHUTDOWN_API__
+  ├─ 播放：<video>（静音兜底自动播放 + WebAudio 音量增益）+ 自定义 chrome（品牌、ID、进度条、SKIP）
+  ├─ 结束：静默 autoClose（window.close → 脚本重开再关 → about:blank），preview/card 模式才显示结束卡片
   └─ 清理：移除节点、解锁滚动、恢复焦点、复位 __DSH_SHUTDOWN_RUNNING__
 ```
 
@@ -156,15 +161,18 @@ DSH Web 进程（Host 半侧，lib/index.js）
 ## 测试
 
 ```bash
-node test/smoke-host.mjs   # 76 项断言：导出形状 / 路由 / 信任栅栏 / 配置归一化 / Range 206 / 注入 / XSS
+node test/smoke-host.mjs   # 93 项断言：导出形状 / 路由 / 信任栅栏 / 配置归一化 / Range 206 / 中文文件名 / 打开目录 / 注入 / XSS
 node --check lib/index.js && node --check lib/closing.js && node --check lib/client.js
 ```
+
+更新记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 兼容性
 
 - DSH Web profile（`dsh.client.platform: "web"`），DSH 0.2.x；依赖公开的 `webServer`、
   `connection.requestRejection`、`ctx.slots` 接口，不碰 DSH 内部私有实现。
 - 与 `dsh-startup-screen` 1.2.0 并存验证；两个插件互不改文件。
+- 0.2.0 与 0.1.0 配置完全兼容，升级后刷新页面即可；见 [CHANGELOG.md](./CHANGELOG.md)。
 - 桌面端：Host 半侧检测不到 `webServer` 时只告警不报错，设置页仍可用；关闭动画需 Web 端。
 
 ---

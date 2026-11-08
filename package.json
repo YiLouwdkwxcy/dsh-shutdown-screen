@@ -1,6 +1,6 @@
 {
   "name": "dsh-shutdown-screen",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "DeepSeek Harness 关闭动画：退出时全屏播放视频。dsh-startup-screen 的独立伴生插件。",
   "keywords": [

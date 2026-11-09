@@ -4,9 +4,6 @@
 全屏播放你指定的视频，播完尝试关闭标签页。它是 [dsh-startup-screen](https://github.com/6shenhonghong9/dsh-startup-screen)
 的伴生插件——开启动画归它管，关闭动画归本插件管，两者各有独立设置页，可同时启用。
 
-> **状态：暂不发布，仍需打磨。**
-> 这个仓库是公开的，但**没有任何发布包**（没有 Release、没有 npm 版本），因此暂时不能通过
-> `dsh plugin add dsh-shutdown-screen` 直接下载安装。请按下面的「安装」一节从源码/本地打包安装。
 
 > **关于这个插件**
 > 本插件由 AI 编写，源自我的一个小想法：给 DSH 的「开启动画」补上对应的「关闭动画」。

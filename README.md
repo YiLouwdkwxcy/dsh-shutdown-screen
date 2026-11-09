@@ -208,8 +208,9 @@ node --check lib/index.js && node --check lib/closing.js && node --check lib/cli
   `connection.requestRejection`、`ctx.slots` 接口，不碰 DSH 内部私有实现。
 - 与 `dsh-startup-screen` 1.2.0 并存验证；两个插件互不改文件。
 - 0.2.1 与 0.2.0 / 0.1.0 配置完全兼容（无新增字段），升级后重启 / 刷新页面即可；见 [CHANGELOG.md](./CHANGELOG.md)。
-- **DSH 桌面端**：未在桌面端实测；Web 端完整支持。桌面端设置页 / 动画预计可用，但「播完自动关窗口」
-  依赖 `window.close()`，Windows 关闭助手只匹配浏览器进程。详见 [DESKTOP.md](./DESKTOP.md)。
+- **DSH 桌面端**：本机未安装，**未实测**。桌面端（Next）挂载自己的 `webServer`，插件注册类路由
+  预计可用；但 `tapIndex` 的 HTML 注入在桌面端不生效，动画依赖客户端自举加载，自动关窗行为不确定。
+  详见 [DESKTOP.md](./DESKTOP.md)。
 - 安装渠道：GitHub Release 附件（tgz）或 npm registry（发布后）；DSH 插件管理器的「检查更新」
   只识别 npm 版本。
 

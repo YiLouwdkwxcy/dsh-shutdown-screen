@@ -9,7 +9,10 @@
     "deepseek-harness",
     "shutdown",
     "closing-screen",
-    "exit-animation"
+    "exit-animation",
+    "shutdown-animation",
+    "startup-animation",
+    "companion"
   ],
   "type": "module",
   "main": "lib/index.js",
@@ -23,9 +26,13 @@
     "test",
     "cordis.patch.yml",
     "README.md",
+    "DESKTOP.md",
     "INSTALL.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "node test/smoke-host.mjs"
   },

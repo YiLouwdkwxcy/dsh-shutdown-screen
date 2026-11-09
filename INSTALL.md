@@ -1,36 +1,45 @@
 # 安装 / 升级 / 卸载
 
-> 本仓库当前 **暂不发布**：没有 Release，也没有 npm 包。安装只能从源码目录或本地 `npm pack` 出来的
-> tgz 进行。等打磨完、正式发布后会更新本文。
+> 当前版本 **0.2.1**。GitHub Release 提供 `dsh-shutdown-screen-0.2.1.tgz`；npm 版本发布后，
+> 可用 `dsh plugin --profile web add dsh-shutdown-screen` 安装，并在 DSH 插件管理器里接收更新。
 
 ## 前置
 
 - DSH 0.2.x，使用 **web** profile（`dsh web`）。
 - 已装 `dsh-startup-screen`（可选，但两个一起才是「开启动画 + 关闭动画」完整形态）。
 
-## 从本地 tgz 安装（推荐）
+## 方式一：从 GitHub Release 安装（推荐，无需 npm 账号）
+
+1. 打开 [Releases](https://github.com/YiLouwdkwxcy/dsh-shutdown-screen/releases)，下载
+   `dsh-shutdown-screen-0.2.1.tgz`。
+2. 安装到 web profile：
+
+   ```bash
+   # 方式 A：PATH 里的 dsh 可用
+   dsh plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
+
+   # 方式 B：直接用 DSH 的入口
+   node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
+   ```
+
+3. 重启 DSH Web 进程，刷新 `http://127.0.0.1:3080`。
+
+## 方式二：npm 安装 / 更新（发布后）
 
 ```bash
-cd dsh-shutdown-screen
-npm pack                       # 生成 dsh-shutdown-screen-0.2.1.tgz
-
-# 方式 A：PATH 里的 dsh 可用
-dsh plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
-
-# 方式 B：直接用 DSH 的入口
-node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
+dsh plugin --profile web add dsh-shutdown-screen@0.2.1
 ```
 
-装完重启 DSH Web 进程，刷新 `http://127.0.0.1:3080`。
+安装后可在 DSH 插件管理器里「检查更新」（只识别 npm 安装的版本）。Host 半侧有改动时重启 DSH Web。
 
-## 从源码目录安装（开发）
+## 方式三：源码目录安装（开发）
 
 ```bash
 dsh plugin --profile web add /path/to/dsh-shutdown-screen
 ```
 
 插件没有构建步骤（原生 ESM + IIFE），改了 `lib/*.js` 只需要刷新浏览器；Host 半侧（`lib/index.js`）
-改了要重启 DSH Web 进程。
+改了要重启 DSH Web 进程。也可以在本目录 `npm pack` 后按方式一安装。
 
 ## 放视频
 
@@ -42,9 +51,13 @@ dsh plugin --profile web add /path/to/dsh-shutdown-screen
 
 ## 升级
 
-1. 用新 tgz 再执行一次 `add`（同名包会覆盖安装）；
-2. 重启 DSH Web；
-3. 设置保存在 `~/.dsh/dsh-shutdown.json`，升级不会清空；新增字段缺省时自动取默认值。
+1. **npm 安装的版本**：在 DSH 插件管理器里「检查更新」，或
+   `dsh plugin --profile web add dsh-shutdown-screen@<新版本>`；
+2. **tgz 安装的版本**：下载新版本 tgz 再执行一次 `add`（同名包会覆盖安装）；
+3. 重启 DSH Web；
+4. 设置保存在 `~/.dsh/dsh-shutdown.json`，升级不会清空；新增字段缺省时自动取默认值。
+
+版本变化见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 卸载
 

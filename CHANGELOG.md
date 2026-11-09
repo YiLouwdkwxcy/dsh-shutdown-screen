@@ -33,6 +33,9 @@
 
 - 配置 `~/.dsh/dsh-shutdown.json` 与 0.2.0 完全兼容，无新增字段。
 - 关闭窗口功能仅 Windows 生效；macOS / Linux 上会回退为「结束画面 + Ctrl+W 提示」。
+- DSH 桌面端未实测；Web 端完整支持，桌面端情况见 [DESKTOP.md](./DESKTOP.md)。
+- 安装 / 更新：GitHub Release 附件（tgz）或 npm registry（发布后）。DSH 插件管理器的
+  「检查更新」只识别 npm 安装的版本；本地 tgz 安装需要手动覆盖升级。
 - 升级方式：重新打包后 `dsh plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz`，
   重启 / 刷新 DSH Web 后生效（Host 半侧改动需要重载进程）。
 

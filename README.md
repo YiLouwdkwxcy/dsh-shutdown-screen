@@ -4,6 +4,10 @@
 全屏播放你指定的视频，播完尝试关闭标签页。它是 [dsh-startup-screen](https://github.com/6shenhonghong9/dsh-startup-screen)
 的伴生插件——开启动画归它管，关闭动画归本插件管，两者各有独立设置页，可同时启用。
 
+> **发布状态（0.2.1）**
+> GitHub Release 已发布，附件提供 `dsh-shutdown-screen-0.2.1.tgz`；npm 版本发布后，
+> 可用 `dsh plugin --profile web add dsh-shutdown-screen` 安装，并在 DSH 插件管理器里接收更新。
+> 具体安装、下载与更新方式见下面「安装」一节。
 
 > **关于这个插件**
 > 本插件由 AI 编写，源自我的一个小想法：给 DSH 的「开启动画」补上对应的「关闭动画」。
@@ -55,20 +59,33 @@ DSH 启动时会播「开启动画」；这个插件补上另一半：**退出�
 
 ## 安装
 
-需要 DSH 0.2.x（Web profile）。在插件源码目录里：
+需要 DSH 0.2.x（Web profile）。三种方式任选其一。
+
+### 方式一：Release 附件（推荐，无需 npm 账号）
+
+1. 在 [Releases](https://github.com/YiLouwdkwxcy/dsh-shutdown-screen/releases) 下载
+   `dsh-shutdown-screen-0.2.1.tgz`（0.2.1 及以后版本同名规则）。
+2. 安装到 web profile：
+
+   ```bash
+   node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
+   ```
+
+3. **重启 DSH Web**（Host 半侧改动需要重载进程，只刷新页面不够），再打开
+   `http://127.0.0.1:3080`。
+
+### 方式二：npm（发布后，可接收更新）
 
 ```bash
-# 1) 打包
-npm pack
-# 得到 dsh-shutdown-screen-0.2.1.tgz
-
-# 2) 安装到 web profile
-node "$(npm root -g)/@deepseek-ai/dsh/lib/bin.js" plugin --profile web add ./dsh-shutdown-screen-0.2.1.tgz
+dsh plugin --profile web add dsh-shutdown-screen@0.2.1
 ```
 
-（`dsh` 命令本身是同一个入口；如果 PATH 里的 `dsh` 能用，直接 `dsh plugin --profile web add ...` 即可。）
+> DSH 插件管理器的「检查更新」只识别 npm registry 安装的包；本地 tgz / 目录 / git 安装
+> 没有更新入口。想以后能一键更新，就用方式二。
 
-也可以直接从目录安装（开发时更方便，改完文件刷新页面就生效）：
+### 方式三：源码目录（开发调试）
+
+在插件源码目录里 `npm pack` 后按方式一安装；也可以直接从目录安装（改完文件刷新页面就生效）：
 
 ```bash
 dsh plugin --profile web add /path/to/dsh-shutdown-screen
@@ -79,6 +96,17 @@ dsh plugin --profile web add /path/to/dsh-shutdown-screen
 - 设置页左侧多出 **关闭动画**；
 - 侧栏底部、设置按钮上方多出 **电源按钮**；
 - 全局快捷键 `Alt + Shift + Q` 可用（页面刚打开也能一次触发，不用刷新；启动动画期间按下会排队）。
+
+## 更新
+
+- **npm 安装（可一键更新）**：在 DSH 插件管理器里点「检查更新」，或重新执行
+  `dsh plugin --profile web add dsh-shutdown-screen@<新版本>`；Host 半侧有改动时重启 DSH Web。
+- **Release / tgz 安装**：下载新版本 tgz，用方式一覆盖安装同一个 profile；配置
+  `~/.dsh/dsh-shutdown.json` 会自动复用。
+- **源码目录安装**：`git pull` 后重新 `dsh plugin --profile web add /path/to/dsh-shutdown-screen`，
+  或直接改文件后刷新页面。
+- 每个版本的变化见 [CHANGELOG.md](./CHANGELOG.md)，版本说明 / 兼容性 / 下载使用方法见
+  [Releases](https://github.com/YiLouwdkwxcy/dsh-shutdown-screen/releases)。
 
 ## 放视频
 
@@ -180,7 +208,10 @@ node --check lib/index.js && node --check lib/closing.js && node --check lib/cli
   `connection.requestRejection`、`ctx.slots` 接口，不碰 DSH 内部私有实现。
 - 与 `dsh-startup-screen` 1.2.0 并存验证；两个插件互不改文件。
 - 0.2.1 与 0.2.0 / 0.1.0 配置完全兼容（无新增字段），升级后重启 / 刷新页面即可；见 [CHANGELOG.md](./CHANGELOG.md)。
-- 桌面端：Host 半侧检测不到 `webServer` 时只告警不报错，设置页仍可用；关闭动画需 Web 端。
+- **DSH 桌面端**：未在桌面端实测；Web 端完整支持。桌面端设置页 / 动画预计可用，但「播完自动关窗口」
+  依赖 `window.close()`，Windows 关闭助手只匹配浏览器进程。详见 [DESKTOP.md](./DESKTOP.md)。
+- 安装渠道：GitHub Release 附件（tgz）或 npm registry（发布后）；DSH 插件管理器的「检查更新」
+  只识别 npm 版本。
 
 ---
 
